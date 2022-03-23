@@ -25,19 +25,17 @@ impl SetBits {
     }
 
     pub fn set(&mut self, index: u64) {
-        let unit_to_modify = index / HOLDING_UNIT_SIZE as u64;
-        let units_to_allocate = unit_to_modify as isize - self.bit_vec.len() as isize + 1;
+        let unit_index_to_modify = index as usize / HOLDING_UNIT_SIZE as usize;
         let bit_in_unit_to_set = index % HOLDING_UNIT_SIZE as u64;
         let or_unit = 1 << bit_in_unit_to_set;
-        println!("or unit {}", or_unit);
 
-        if units_to_allocate > 0 {
-            for _ in 0..units_to_allocate {
+        if unit_index_to_modify + 1 > self.bit_vec.len() {
+            for _ in self.bit_vec.len()..(unit_index_to_modify + 1) {
                 self.bit_vec.push(0)
             }
         }
 
-        self.bit_vec[unit_to_modify as usize] |= or_unit
+        self.bit_vec[unit_index_to_modify] |= or_unit
     }
 
     /*
