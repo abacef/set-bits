@@ -51,8 +51,17 @@ impl SetBits {
         }
     }
 
-    pub fn clear(index: u64) {
-
+    /**
+     * if bit is already clear, then do nothing
+     */
+    pub fn clear(&mut self, index: u64) {
+        let unit_index_to_modify = index as usize / HOLDING_UNIT_SIZE as usize;
+        if unit_index_to_modify + 1 <= self.bit_vec.len() {
+            let bit_in_unit_to_clear = index % HOLDING_UNIT_SIZE as u64;
+            let mut clear_unit = 1 << bit_in_unit_to_clear;
+            clear_unit &= u32::MAX; // flip all the bits
+            self.bit_vec[unit_index_to_modify] &= clear_unit
+        }
     }
 
     pub fn clear_many(from_index: u64, to_index: u64) {
