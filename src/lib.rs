@@ -56,7 +56,7 @@ impl SetBits {
      */
     pub fn clear(&mut self, index: u64) {
         let unit_index_to_modify = index as usize / HOLDING_UNIT_SIZE as usize;
-        if unit_index_to_modify + 1 <= self.bit_vec.len() {
+        if unit_index_to_modify < self.bit_vec.len() {
             let bit_in_unit_to_clear = index % HOLDING_UNIT_SIZE as u64;
             let mut clear_unit = 1 << bit_in_unit_to_clear;
             clear_unit &= u32::MAX; // flip all the bits
@@ -77,14 +77,27 @@ impl SetBits {
     }
 
     pub fn get(&self, index: u64) -> bool {
-        let unit_index_to_check = index / HOLDING_UNIT_SIZE as u64;
-        if unit_index_to_check > self.bit_vec.len() as u64 {
+        if self.bit_vec.len() == 0 {
             false
         } else {
-            let bit_in_unit_to_check = index % HOLDING_UNIT_SIZE as u64;
-            let mask = 1 << bit_in_unit_to_check;
-            self.bit_vec[unit_index_to_check as usize] & mask > 0
+            let unit_index_to_check = index / HOLDING_UNIT_SIZE as u64;
+            if unit_index_to_check > self.bit_vec.len() as u64 {
+                false
+            } else {
+                let bit_in_unit_to_check = index % HOLDING_UNIT_SIZE as u64;
+                let mask = 1 << bit_in_unit_to_check;
+                self.bit_vec[unit_index_to_check as usize] & mask > 0
+            }
         }
+    }
+
+    pub fn any_set(&self, from_index: u64, to_index: u64) -> bool {
+        for i in from_index .. to_index {
+            if self.get(i) {
+                return true
+            }
+        }
+        false
     }
 }
 
@@ -105,6 +118,14 @@ mod tests {
         assert!(bs.get(5));
         assert!(!bs.get(6));
         assert!(!bs.get(1034))
+    }
+
+    #[test]
+    fn no_value_set__all_bits_false() {
+        let bs = SetBits::new();
+        assert!(!bs.get(0));
+        assert!(!bs.get(5));
+        assert!(!bs.get(100));
     }
 
     #[test]
